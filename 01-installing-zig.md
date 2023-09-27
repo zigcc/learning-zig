@@ -1,3 +1,5 @@
+> 原文地址：https://www.openmymind.net/learning_zig/#install
+
 # 安装 Zig
 
 Zig 官网的[下载页面](https://ziglang.org/download/)中包含常见平台的预编译二进制文件。在这个页面上，你可以找到最新开发版本和主要版本的二进制文件。本指南所跟踪的最新版本可在页面顶部找到。
