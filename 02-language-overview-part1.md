@@ -61,7 +61,8 @@ const User = @import("models/user.zig").User;
 
 如果我们的 `User` 结构未标记为 `pub` 我们会收到以下错误：“User”未标记为“pub”。
 
-models/user.zig 可以导出不止一项内容。例如，我们还可以导出一个常量：
+`models/user.zig` 可以导出不止一项内容。例如，我们还可以导出一个常量：
+
 
 ```zig
 // models/user.zig
