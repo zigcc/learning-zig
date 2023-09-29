@@ -23,7 +23,8 @@ pub const User = struct {
 };
 ```
 
-如果将上述内容保存为learning.zig并运行 `zig run learning.zig` ，您应该看到： `Goku's power is 9001` 。
+如果将上述内容保存到 `learning.zig` 文件，并运行 `zig run learning.zig` ，这时会输出：`Goku's power is 9001`。
+
 
 这是一个简单的示例，即使您是第一次看到 Zig，也可以遵循这个示例。尽管如此，我们还是要逐行讨论它。
 
