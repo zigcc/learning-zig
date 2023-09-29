@@ -44,7 +44,7 @@ fn add(a: i64, _: i64) i64 {
 
 ## 变量覆盖（Variable Shadowing)
 
-Zig不允许使用相同的名字把一个标识符(不论是函数还是变量)"隐藏"(hide)起来。下面是一个读取socket的例子，这个例子包含了一个命名覆盖的编译错误：
+Zig 不允许使用同名的变量。下面是一个读取 `socket` 的例子，这个例子包含了一个变量覆盖的编译错误：
 
 ```zig
 fn read(stream: std.net.Stream) ![]const u8 {
