@@ -74,7 +74,8 @@ pub const User = struct {
 };
 ```
 
-在这种情况下，我们可以导入两者：
+这时，我们可以这样导入两者：
+
 
 ```zig
 const user = @import("models/user.zig");
