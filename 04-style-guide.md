@@ -1,5 +1,5 @@
 # 代码风格和规范
-本小节的主要内容是介绍Zig编译器强制遵守的2条规则，以及Zig标准库的命名惯例(naming convention)
+本小节的主要内容是介绍Zig编译器强制遵守的2条规则，以及Zig标准库的命名惯例(naming convention)。
 
 ## 未使用变量(unused variable)
 Zig编译器禁止`未使用变量`，例如以下代码会导致两处编译错误：
