@@ -51,7 +51,8 @@ pub const User = struct {
 };
 ```
 
-然后我们通过以下方式导入它：
+然后我们通过以下方式引用它：
+
 
 ```zig
 // main.zig
