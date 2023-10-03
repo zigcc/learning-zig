@@ -1,6 +1,6 @@
 > 原文地址：https://www.openmymind.net/learning_zig/coding_in_zig/
 
-# 在 Zig 中编程
+# 使用 Zig 编程
 
 在介绍了 Zig 语言的大部分内容之后，我们将对一些主题进行回顾，并展示几种使用 Zig 编程时一些实用的技巧。在此过程中，我们将介绍更多的标准库，并介绍一些不那么琐碎的代码片段。
 
