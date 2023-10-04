@@ -31,16 +31,13 @@ pub const User = struct {
 
 > 请参阅[安装 Zig 部分](01-installing-zig.md)，以便快速启动并运行它。
 
-
 ## 模块引用
 
 很少有程序是在没有标准库或外部库的情况下作为单个文件编写的。我们的第一个程序也不例外，它使用 Zig 的标准库来进行打印输出。 Zig 的模块系统非常简单，只依赖于 `@import` 函数和 `pub` 关键字（使代码可以在当前文件外部访问）。
 
-
 > 以 `@` 开头的函数是内置函数。它们是由编译器提供的，而不是标准库提供的。
 
 我们通过指定模块名称来引用它。 Zig 的标准库以 `std` 作为模块名。要引用特定文件，需要使用相对路径。例如，将 `User` 结构移动到它自己的文件中，比如 `models/user.zig`：
-
 
 ```zig
 // models/user.zig
@@ -61,7 +58,6 @@ const User = @import("models/user.zig").User;
 
 `models/user.zig` 可以导出不止一项内容。例如，再导出一个常量：
 
-
 ```zig
 // models/user.zig
 pub const MAX_POWER = 100_000;
@@ -74,7 +70,6 @@ pub const User = struct {
 
 这时，可以这样导入两者：
 
-
 ```zig
 const user = @import("models/user.zig");
 const User = user.User;
@@ -82,6 +77,7 @@ const MAX_POWER = user.MAX_POWER
 ```
 
 此时，你可能会有更多的困惑。在上面的代码片段中，`user` 是什么？我们还没有看到它，如果使用 `var` 来代替 `const` 会有什么不同呢？或者你可能想知道如何使用第三方库。这些都是好问题，但要回答这些问题，需要掌握更多 Zig 的知识点。因此，我们现在只需要掌握以下内容：
+
 - 如何导入 Zig 标准库
 - 如何导入其他文件
 - 如何导出变量、函数定义
@@ -89,6 +85,7 @@ const MAX_POWER = user.MAX_POWER
 ## 代码注释
 
 下面这行 Zig 代码是一个注释：
+
 ```zig
 // This code won't compile if `main` isn't `pub` (public)
 ```
@@ -96,7 +93,6 @@ const MAX_POWER = user.MAX_POWER
 Zig 没有像 C 语言中的 `/* ... */` 类似的多行注释。
 
 基于注释的文档自动生成功能正在试验中。如果你看过 Zig 的标准库文档，你就会看到它的实际应用。`//!` 被称为顶级文档注释，可以放在文件的顶部。三斜线注释 (`///`) 被称为文档注释，可以放在特定位置，如声明之前。如果在错误的地方使用这两种文档注释，编译器都会出错。
-
 
 ## 函数
 
@@ -192,6 +188,7 @@ pub const User = struct {
 ```
 
 方法只是普通函数，只是说可以用 `struct.method()` 方式调用。以下两种方法等价：
+
 ```zig
 // call diagnose on user
 user.diagnose();
@@ -300,8 +297,8 @@ const a = [_]i32{1, 2, 3, 4, 5};
 var end: usize = 4;
 const b = a[1..end];
 ```
-`b` 现在是一个切片了。具体来说，它的类型是 `[]const i32`。你可以看到，切片的长度并不是类型的一部分，因为长度是运行时属性，而类型总是在编译时就完全已知。在创建切片时，我们可以省略上界，创建一个到要切分的对象（数组或切片）末尾的切片，例如 `const c = b[2...];`。
 
+`b` 现在是一个切片了。具体来说，它的类型是 `[]const i32`。你可以看到，切片的长度并不是类型的一部分，因为长度是运行时属性，而类型总是在编译时就完全已知。在创建切片时，我们可以省略上界，创建一个到要切分的对象（数组或切片）末尾的切片，例如 `const c = b[2...];`。
 
 > 如果我们将 `end` 声明为 `const` 那么它将成为编译时已知值，这将导致 `b` 是一个指向数组的指针，而不是切片。我觉得这有点令人困惑，但它并不是经常出现的东西，而且也不太难掌握。我很想在这一点上跳过它，但无法找到一种诚实的方法来避免这个细节。
 
@@ -418,6 +415,7 @@ pub fn print(comptime fmt: []const u8, args: anytype) void {
 var i: usize = 0;
 var j: f64 = 0;
 ```
+
 > 注意，如果我们使用 const，就不会出现这个错误，因为错误的关键在于 `comptime_int` 必须是 `const`。
 
 在以后的章节中，我们将在探索泛型时进一步研究 `comptime`。
@@ -425,6 +423,7 @@ var j: f64 = 0;
 我们这行代码的另一个特别之处在于奇怪的 `.{user.name, user.power}`，根据上述 `print` 的定义，我们知道它映射到 `anytype` 类型的变量。这种类型不应与 Java 的 Object 或 Go 的 any（又名 interface{}）混淆。相反，在编译时，Zig 会为传递给它的所有类型专门创建一个单独的 `print` 函数。
 
 这就引出了一个问题：我们传递给它的是什么？我们以前在让编译器推断结构类型时见过 `.{...}` 符号。这与此类似：它创建了一个匿名结构字面。请看这段代码
+
 ```zig
 pub fn main() void {
 	std.debug.print("{any}\n", .{@TypeOf(.{.year = 2023, .month = 8})});
