@@ -88,6 +88,7 @@ pub const Game = struct {
 ```
 
 这段代码主要突显两件事：
+
 1. `errdefer` 的作用。在正常情况下，`player` 在 `init` 分配，在 `deinit` 释放。但有一种边缘情况，即历史初始化失败。在这种情况下，我们需要撤销玩家的分配。
 2. 我们动态分配的两个切片（`players` 和 `history`）的生命周期是基于我们的应用程序逻辑的。没有任何规则规定何时必须调用 `deinit` 或由谁调用。这是件好事，因为它为我们提供了任意的生命周期，但也存在缺点，就是如果从未调用 `deinit` 或调用 `deinit` 超过一次，就会出现混乱和错误。
 
@@ -206,6 +207,7 @@ pub const User = struct {
 	}
 };
 ```
+
 在这种情况下，返回一个 `User`可能更有意义。但有时你会希望函数返回一个指向它所创建的东西的指针。当你想让生命周期不受调用栈的限制时，你就会这样做。为了解决上面的悬空指针问题，我们可以使用`create` 方法：
 
 ```zig
@@ -245,7 +247,6 @@ defer allocator.free(say);
 > Zig 没有用于创建接口的语法糖。一种类似于接口的模式是带标签的联合（tagged unions），不过与真正的接口相比，这种模式相对受限。整个标准库中也探索了一些其他模式，例如 `std.mem.Allocator`。本指南不探讨这些接口模式。
 
 如果你正在构建一个库，那么最好接受一个 `std.mem.Allocator`，然后让库的用户决定使用哪种分配器实现。否则，你就需要选择正确的分配器，正如我们将看到的，这些分配器并不相互排斥。在你的程序中创建不同的分配器可能有很好的理由。
-
 
 ## 通用分配器 GeneralPurposeAllocator
 
@@ -432,6 +433,7 @@ fn parse(allocator: Allocator, input: []const u8) !Something {
 	return parseInternal(allocator, state, input);
 }
 ```
+
 虽然这并不难管理，但 `parseInternal` 内可能还会申请临时内存，当然这些内存也需要释放。作为替代方案，我们可以创建一个 `ArenaAllocator`，一次性释放所有分配：
 
 ```zig
@@ -459,6 +461,7 @@ fn parse(allocator: Allocator, input: []const u8) !Something {
 	return parseInternal(aa, state, input);
 }
 ```
+
 `ArenaAllocator` 接收一个子分配器（在本例中是传入 `init` 的分配器），然后创建一个新的 `std.mem.Allocator`。当使用这个新的分配器分配或创建内存时，我们不需要调用 free 或 destroy。当我们调用 `arena.deinit` 时，会一次性释放所有该分配器申请的内存。事实上，`ArenaAllocator` 的 `free` 和 `destroy` 什么也不做。
 
 必须谨慎使用 `ArenaAllocator`。由于无法释放单个分配，因此需要确保 `ArenaAllocator` 的 `deinit` 会在合理的内存增长范围内被调用。有趣的是，这种知识可以是内部的，也可以是外部的。例如，在上述代码中，由于状态生命周期的细节属于内部事务，因此在解析器中利用 `ArenaAllocator` 是合理的。
@@ -493,7 +496,6 @@ defer list.deinit();
 
 ...
 ```
-
 
 由于 `IntList` 接受的参数是 `std.mem.Allocator`， 因此我们不需要做什么改变。如果 `IntList`内部创建了自己的 `ArenaAllocator`，那也是可行的。允许在`ArenaAllocator`内部创建`ArenaAllocator`。
 

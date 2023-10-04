@@ -41,6 +41,7 @@ const User = struct {
 	power: i32,
 };
 ```
+
 当我运行这个程序时，我得到了
 
 ```bash
@@ -57,6 +58,7 @@ Goku's power is: -1431655766
 > 在编写这个示例时，我并不确定会发生什么。删除有可能是通过设置内部标志来实现的，实际删除是惰性的。如果是这样的话，上面的示例在简单的情况下可能会 "奏效"，但在更复杂的情况下就会失败。这听起来非常难以调试。
 
 除了不调用 `remove` 之外，我们还可以用几种不同的方法来解决这个问题。首先，我们可以使用 `get` 而不是 `getPtr`。这样 `lookup` 将返回一个 `User` 的副本，而不再是 `*User`。这样我们就有了三个用户：
+
 1. 定义在函数内部的 `goku`，`main` 函数是其所有者
 2. 调用 `lookup.put` 时，形式参数会得到 `goku` 一个的副本，`lookup` 是其所有者
 3. 使用 `get` 函数返回的 `entry`，`main` 函数是其所有者
@@ -64,6 +66,7 @@ Goku's power is: -1431655766
 由于 `entry` 现在是 `User` 的独立副本，因此将其从 `lookup` 中删除不会再使其失效。
 
 另一种方法是将 `lookup` 的类型从 `StringHashMap(User)` 改为 `StringHashMap(*const User)`。这段代码可以工作：
+
 ```zig
 const std = @import("std");
 
@@ -142,6 +145,7 @@ const User = struct {
 ```
 
 上述代码虽然区分大小写，但无论我们如何完美地输入 `Leto`，`contains` 总是返回 `false`。让我们通过遍历 `lookup` 打印其值来调试一下：
+
 ```zig
 // Place this code after the while loop
 
@@ -153,6 +157,7 @@ while (it.next()) |kv| {
 ```
 
 这种迭代器模式在 Zig 中很常见，它依赖于 while 和可选类型（`Optional`）之间的协同作用。我们的迭代器返回指向键和值的指针，因此我们用 `.*` 对它们进行反引用，以访问实际值而不是地址。输出结果将取决于你输入的内容，但我得到的是
+
 ```bash
 Please enter a name: Paul
 Please enter a name: Teg
@@ -166,6 +171,7 @@ Please enter a name:
 ��� == learning.User{ .power = 2 }
 false
 ```
+
 值看起来没问题，但键不一样。如果你不确定发生了什么，那可能是我的错。之前，我故意误导了你的注意力。我说哈希表通常声明周期会比较长，因此需要同等生命周期的值（value）。事实上，哈希表不仅需要长生命周期的值，还需要长生命周期的键（key）！请注意，`buf` 是在 `while` 循环中定义的。当我们调用 `put` 时，我们给了哈希表插入一个键值对，这个键的生命周期比哈希表本身短得多。将 `buf` 移到 `while` 循环之外可以解决生命周期问题，但每次迭代都会重复使用缓冲区。由于我们正在更改底层的键数据，因此它仍然无法工作。
 
 对于上述代码，实际上只有一种解决方案：我们的 `lookup` 必须拥有键的所有权。我们需要添加一行并修改另一行：
@@ -183,6 +189,7 @@ try lookup.put(owned_name, .{.power = i});
 你可能以为当我们调用 lookup.deinit 时，键和值就会被释放。但 StringHashMap 并没有放之四海而皆准的解决方案。首先，键可能是字符串文字，无法释放。其次，它们可能是用不同的分配器创建的。最后，虽然更先进，但在某些情况下，键可能不属于哈希表。
 
 唯一的解决办法就是自己释放键值。在这一点上，创建我们自己的 `UserLookup` 类型并在 `deinit` 函数中封装这一清理逻辑可能会比较合理。一种简单的改法：
+
 ```zig
 // replace the existing:
 //   defer lookup.deinit();
@@ -205,6 +212,7 @@ defer {
 现在你可以忘掉我们的 `IntList` 和我们创建的通用替代方案了。Zig 标准库中有一个动态数组实现：`std.ArrayList(T)`。
 
 它是相当标准的东西，但由于它如此普遍需要和使用的数据结构，值得看看它的实际应用:
+
 ```zig
 const std = @import("std");
 const Allocator = std.mem.Allocator;
@@ -261,11 +269,13 @@ const User = struct {
 	}
 };
 ```
+
 以上是哈希表代码的基于 `ArrayList(User)` 的另一种实现。所有相同的生命周期和内存管理规则都适用。请注意，我们仍在创建 `name` 的副本，并且仍在删除 `ArrayList` 之前释放每个 `name`。
 
 现在是指出 Zig 没有属性或私有字段的好时机。当我们访问 `arr.items` 来遍历值时，就可以看到这一点。没有属性的原因是为了消除阅读 Zig 代码中的歧义。在 Zig 中，如果看起来像字段访问，那就是字段访问。我个人认为，没有私有字段是一个错误，但我们可以解决这个问题。我已经习惯在字段前加上下划线，表示『仅供内部使用』。
 
 由于字符串的类型是 `[]u8` 或 `[]const u8`，因此 `ArrayList(u8)` 是字符串构造器的合适类型，比如 .NET 的 `StringBuilder` 或 Go 的 `strings.Builder`。事实上，当一个函数的参数是 `Writer` 而你需要一个字符串时，就会用到 `ArrayList(u8)`。我们之前看过一个使用 `std.json.stringify` 将 JSON 输出到 `stdout` 的示例。下面是将 JSON 输出到 `ArrayList(u8)` 的示例：
+
 ```zig
 const std = @import("std");
 
@@ -289,6 +299,7 @@ pub fn main() !void {
 ## Anytype
 
 在[语言概述的第一部分](02-language-overview-part1.md)中，我们简要介绍了 `anytype`。这是一种非常有用的编译时 duck 类型。下面是一个简单的 logger：
+
 ```zig
 pub const Logger = struct {
 	level: Level,
@@ -309,17 +320,22 @@ pub const Logger = struct {
 	}
 };
 ```
+
 `info` 函数的 `out` 参数类型为 `anytype`。这意味着我们的 logger 可以将信息输出到任何具有 writeAll 方法的结构中，该方法接受一个 `[]const u8` 并返回一个 `!void`。这不是运行时特性。类型检查在编译时进行，每使用一种类型，就会创建一个类型正确的函数。如果我们试图调用 `info`，而该类型不具备所有必要的函数（本例中只有 `writeAll`），我们就会在编译时出错：
 
 ```zig
 var l = Logger{.level = .info};
 try l.info("sever started", true);
 ```
+
 会得到如下错误：
+
 ```bash
 no field or member function named 'writeAll' in 'bool'
 ```
+
 使用 `ArrayList(u8)` 的 `writer` 就可以运行：
+
 ```zig
 pub fn main() !void {
 	var gpa = std.heap.GeneralPurposeAllocator(.{}){};
@@ -375,6 +391,7 @@ pub const User = struct {
 	name: [] const u8,
 };
 ```
+
 我们可以通过调用 `userFactory(.{})` 创建默认用户，也可以通过 `userFactory(.{.id = 100, .active = false})` 来覆盖特定字段。这只是一个很小的模式，但我非常喜欢。这也是迈向元编程世界的第一步。
 
 更常见的是 `@TypeOf` 与 `@typeInfo` 配对，后者返回一个 `std.buildin.Type`。这是一个功能强大的带标记的联合（tagged union），可以完整描述一个类型。`std.json.stringify` 函数会递归地调用它，以确定如何将其序列化。
@@ -386,6 +403,7 @@ pub const User = struct {
 > 事实上，是我不太了解 Zig 的构建系统，所以无法解释清楚。
 
 不过，我们至少可以获得一个简要的概述。为了运行 Zig 代码，我们使用了 `zig run learning.zig`。有一次，我们还用 `zig test learning.zig` 进行了一次测试。运行和测试命令用来玩玩还行，但如果要做更复杂的事情，就需要使用构建命令了。编译命令依赖于带有特殊编译入口的 `build.zig` 文件。下面是一个示例：
+
 ```zig
 // build.zig
 
@@ -395,6 +413,7 @@ pub fn build(b: *std.Build) !void {
 	_ = b;
 }
 ```
+
 每个构建程序都有一个默认的『安装』步骤，可以使用 `zig build install` 运行它，但由于我们的文件大部分是空的，你不会得到任何有意义的工件。我们需要告诉构建程序我们程序的入口是 `learning.zig`：
 
 ```zig
@@ -416,11 +435,13 @@ pub fn build(b: *std.Build) !void {
 ```
 
 现在，如果运行 `zig build install`，就会在 `./zig-out/bin/learning` 中得到一个二进制文件。通过使用 `standardTargetOptions` 和 `standardOptimizeOption`，我们就能以命令行参数的形式覆盖默认值。例如，要为 `Windows` 构建一个大小优化的程序版本，我们可以这样做：
+
 ```bash
 zig build install -Doptimize=ReleaseSmall -Dtarget=x86_64-windows-gnu
 ```
 
 除了默认的『安装』步骤外，可执行文件通常还会增加两个步骤：『运行』和『测试』。一个库可能只有一个『测试』步骤。对于基本的无参数即可运行的程序来说，只需要在构建文件的最后添加四行：
+
 ```zig
 // add after: b.installArtifact(exe);
 
@@ -430,6 +451,7 @@ run_cmd.step.dependOn(b.getInstallStep());
 const run_step = b.step("run", "Start learning!");
 run_step.dependOn(&run_cmd.step);
 ```
+
 这里通过 `dependOn` 的两次调用创建两个依赖关系。第一个依赖关系将我们的 `run_cmd` 与内置的安装步骤联系起来。第二个是将 `run_step` 与我们新创建的 `run_cmd` 绑定。你可能想知道为什么需要 `run_cmd` 和 `run_step`。我认为这种分离是为了支持更复杂的设置：依赖于多个命令的步骤，或者在多个步骤中使用的命令。如果运行 `zig build --help` 并滚动到顶部，你会看到新增的 `run` 步骤。现在你可以执行 `zig build run` 来运行程序了。
 
 要添加『测试』步骤，你需要重复刚才添加的大部分运行代码，只是不再使用 `b.addExecutable`，而是使用 `b.addTest`：
@@ -446,12 +468,15 @@ test_cmd.step.dependOn(b.getInstallStep());
 const test_step = b.step("test", "Run the tests");
 test_step.dependOn(&test_cmd.step);
 ```
+
 我们将该步骤命名为 `test`。运行 `zig build --help` 会显示另一个可用步骤 `test`。由于我们没有进行任何测试，因此很难判断这一步是否有效。在 `learning.zig` 中，添加
+
 ```zig
 test "dummy build test" {
 	try std.testing.expectEqual(false, true);
 }
 ```
+
 现在运行 `zig build test`时，应该会出现测试失败。如果你修复了测试，并再次运行 `zig build test`，你将不会得到任何输出。默认情况下，Zig 的测试运行程序只在失败时输出结果。如果你像我一样，无论成功还是失败，都想要一份总结，那就使用 `zig build test --summary all`。
 
 这是启动和运行构建系统所需的最低配置。但是请放心,如果你需要构建你的程序，Zig 内置的功能大概率能覆盖你的需求。最后，你可以（也应该）在你的项目根目录下使用 `zig init-exe` 或 `zig init-lib`，让 Zig 为你创建一个文档齐全的 `build.zig` 文件。
@@ -461,6 +486,7 @@ test "dummy build test" {
 Zig 的内置软件包管理器相对较新，因此存在一些缺陷。虽然还有改进的余地，但它目前还是可用的。我们需要了解两个部分：创建软件包和使用软件包。我们将对其进行全面介绍。
 
 首先，新建一个名为 `calc` 的文件夹并创建三个文件。第一个是 `add.zig`，内容如下：
+
 ```zig
 // Oh, a hidden lesson, look at the type of b
 // and the return type!!
@@ -476,6 +502,7 @@ test "add" {
 ```
 
 这个例子可能看起来有点傻，一整个软件包只是为了加两个数值，但它能让我们专注于打包方面。接下来，我们将添加一个同样愚蠢的：`calc.zig`：
+
 ```zig
 pub const add = @import("add.zig").add;
 
@@ -487,6 +514,7 @@ test {
 	@import("std").testing.refAllDecls(@This());
 }
 ```
+
 我们将其分割为 `calc.zig` 和 `add.zig`，以证明 `zig build` 可以自动构建和打包所有项目文件。最后，我们可以添加 build.zig：
 
 ```zig
@@ -508,9 +536,11 @@ pub fn build(b: *std.Build) !void {
 	test_step.dependOn(&test_cmd.step);
 }
 ```
+
 这些都是我们在上一节中看到的内容的重复。有了这些，你就可以运行 `zig build test --summary all`。
 
 回到我们的 `learning`项目和之前创建的 `build.zig`。首先，我们将添加本地 `calc` 作为依赖项。我们需要添加三项内容。首先，我们将创建一个指向 `calc.zig`的模块：
+
 ```zig
 // You can put this near the top of the build
 // function, before the call to addExecutable.
@@ -521,6 +551,7 @@ const calc_module = b.addModule("calc", .{
 ```
 
 您需要调整 `calc.zig` 的路径。现在，我们需要将此模块添加到现有的 `exe` 和 `tests` 中：
+
 ```zig
 const exe = b.addExecutable(.{
 	.name = "learning",
@@ -552,6 +583,7 @@ calc.add(1, 2);
 ```
 
 添加远程依赖关系需要花费更多精力。首先，我们需要回到 `calc` 项目并定义一个模块。你可能认为项目本身就是一个模块，但一个项目（project）可以暴露多个模块（module），所以我们需要明确地创建它。我们使用相同的 `addModule`，但舍弃了返回值。只需调用 `addModule` 就足以定义模块，然后其他项目就可以导入该模块。
+
 ```zig
 _ = b.addModule("calc", .{
 	.source_file = .{ .path = "calc.zig" },
@@ -561,6 +593,7 @@ _ = b.addModule("calc", .{
 这是我们需要对库进行的唯一改动。因为这是一个远程依赖的练习，所以我把这个 `calc` 项目推送到了 GitHub，这样我们就可以把它导入到我们的 `learning` 项目中。它可以在 https://github.com/karlseguin/calc.zig 上找到。
 
 回到我们的 `learning`项目，我们需要一个新文件 `build.zig.zon`。ZON 是 Zig Object Notation 的缩写，它允许以人类可读格式表达 Zig 数据，并将人类可读格式转化为 Zig 代码。`build.zig.zon` 的内容包括：
+
 ```zig
 .{
   .name = "learning",
@@ -573,9 +606,11 @@ _ = b.addModule("calc", .{
   },
 }
 ```
+
 该文件中有两个可疑值，第一个是 url 中的 e43c576da88474f6fc6d971876ea27effe5f7572。这只是 git 提交的哈希值。第二个是哈希值。据我所知，目前还没有很好的方法来告诉我们这个值应该是多少，所以我们暂时使用一个假值。
 
 要使用这一依赖关系，我们需要对 `build.zig` 进行一处修改：
+
 ```zig
 // replace this:
 const calc_module = b.addModule("calc", .{
