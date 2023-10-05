@@ -1,5 +1,7 @@
 # [Learning Zig](https://www.openmymind.net/learning_zig/) 中文翻译
 
+> 在线阅读地址：https://zigcc.github.io/learning-zig
+
 本系列教程最初由 [karlseguin](https://github.com/karlseguin) 用户编写，行文流畅，讲述的脉络由浅入深，深入浅出，是入门 Zig 的非常不错的选择。
 
 因此，[Zig 中文社区](https://zigcc.github.io/)将其翻译成中文，便于在中文用户内阅读与传播，初次接触 Zig 的用户可以按序号依次阅读，对于有经验的 Zig 开发者可按需阅读。
