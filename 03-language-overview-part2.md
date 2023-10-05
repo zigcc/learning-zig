@@ -51,7 +51,7 @@ fn anniversaryName(years_married: u16) []const u8 {
 }
 ```
 
-编译时会报错：`switch` 必须处理所有的可能性。由于我们的 `years_married` 是一个 16 位整数，这是否意味着我们需要处理所有 64K 的情况？是的，但幸好我们可以使用 `else`：
+编译时会报错：`switch` 必须处理所有的可能性。由于我们的 `years_married` 是一个 16 位整数，这是否意味着我们需要处理所有 64K 中情况？是的，不过我们可以使用 `else` 来代替：
 
 ```zig
 // ...
@@ -59,7 +59,7 @@ fn anniversaryName(years_married: u16) []const u8 {
 else => return "no more gifts for you",
 ```
 
-我们可以组合多个 `case` 或使用范围来匹配，使用代码块来处理复杂的情况：
+在进行匹配时，我们可以合并多个 `case` 或使用范围；在进行处理时，可以使用代码块来处理复杂的情况：
 
 ```zig
 fn arrivalTimeDesc(minutes: u16, is_late: bool) []const u8 {
@@ -78,9 +78,9 @@ fn arrivalTimeDesc(minutes: u16, is_late: bool) []const u8 {
 }
 ```
 
-虽然 `switch` 在很多情况下都很有用，但在处理枚举时，它的穷举性质才真正发挥了作用，我们很快就会谈到枚举。
+虽然 `switch` 在很多情况下都很有用，但在处理枚举时，它穷举的性质才真正发挥了作用，我们很快就会谈到枚举。
 
-Zig 的 `for` 循环用于遍历数组、切片和范围。例如，e，我们可以这样写：
+Zig 的 `for` 循环用于遍历数组、切片和范围。例如，我们可以这样写：
 
 ```zig
 fn contains(haystack: []const u32, needle: u32) bool {
@@ -93,7 +93,7 @@ fn contains(haystack: []const u32, needle: u32) bool {
 }
 ```
 
-`for` 循环也可以同时处理多个序列，只要这些序列的长度相同。上面我们使用了 `std.mem.eql` 函数。下面是大致的实现：
+`for` 循环也可以同时处理多个序列，只要这些序列的长度相同。上面我们使用了 `std.mem.eql` 函数，下面是其大致实现：
 
 ```zig
 pub fn eql(comptime T: type, a: []const T, b: []const T) bool {
@@ -108,7 +108,7 @@ pub fn eql(comptime T: type, a: []const T, b: []const T) bool {
 }
 ```
 
-一开始的 `if` 检查不仅是一个很好的性能优化，还是一个必要的防护措施。如果我们去掉它，并传递不同长度的参数，就会出现运行时 `panic`：在长度不相等的对象上进行 for 循环。
+一开始的 `if` 检查不仅是一个很好的性能优化，还是一个必要的防护措施。如果我们去掉它，并传递不同长度的参数，就会出现运行时 `panic`。`for` 在作用于多个序列上时，要求其长度相等。
 
 `for` 循环也可以遍历范围，例如：
 
