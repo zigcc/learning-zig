@@ -5,7 +5,7 @@
 - [前言](00-preface.md)
 - [安装 Zig](01-installing-zig.md)
 - [语言概览 -- 第一部分](02-language-overview-part1.md)
-- [语言概览 -- 第而部分](03-language-overview-part2.md)
+- [语言概览 -- 第二部分](03-language-overview-part2.md)
 - [编码风格](04-style-guide.md)
 - [指针](05-pointers.md)
 - [栈内存](06-stack-memory.md)
