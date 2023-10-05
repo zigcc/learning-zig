@@ -11,5 +11,5 @@
 - [栈内存](06-stack-memory.md)
 - [堆内核与分配器](07-heap-memory-and-allocator.md)
 - [泛型](08-generics.md)
-- [使用 Zig 编程](09-coding-in-zig.md)
+- [实战](09-coding-in-zig.md)
 - [总结](10-conclusion.md)
