@@ -1,0 +1,20 @@
+[book]
+title = "Learning Zig"
+description = "Learning Zig 中文翻译"
+authors = ["ZigCC"]
+language = "cn"
+multilingual = false
+src = "."
+
+[output.html]
+git-repository-url = "https://github.com/zigcc/learning-zig"
+git-repository-icon = "fa-github"
+edit-url-template = "https://github.com/zigcc/learning-zig/edit/main/{path}"
+site-url = "/learning-zig/"
+
+[output.html.print]
+enable = true    # include support for printable output
+page-break = true # insert page-break after each chapter
+
+[output.html.search]
+enable = true
