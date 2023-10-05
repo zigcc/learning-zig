@@ -1,4 +1,4 @@
-> 原文地址：https://www.openmymind.net/learning_zig/language_overview_1/
+> 原文地址：<https://www.openmymind.net/learning_zig/language_overview_1>
 
 # 语言概述 - 第 1 部分
 

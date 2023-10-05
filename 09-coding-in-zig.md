@@ -1,4 +1,4 @@
-> 原文地址：https://www.openmymind.net/learning_zig/coding_in_zig/
+> 原文地址：<https://www.openmymind.net/learning_zig/coding_in_zig>
 
 # 实战
 

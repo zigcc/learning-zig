@@ -1,4 +1,4 @@
-> 原文地址：https://www.openmymind.net/learning_zig/style_guide/
+> 原文地址：<https://www.openmymind.net/learning_zig/style_guide>
 
 # 代码风格和规范
 

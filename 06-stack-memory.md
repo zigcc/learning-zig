@@ -1,4 +1,4 @@
-> 原文地址：https://www.openmymind.net/learning_zig/stack_memory/
+> 原文地址：<https://www.openmymind.net/learning_zig/stack_memory>
 
 # 栈内存
 

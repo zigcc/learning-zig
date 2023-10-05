@@ -1,4 +1,4 @@
-> 原文地址：https://www.openmymind.net/learning_zig/#install
+> 原文地址：<https://www.openmymind.net/learning_zig/#install>
 
 # 安装 Zig
 

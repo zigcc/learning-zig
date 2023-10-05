@@ -1,6 +1,6 @@
-> 原文地址：https://www.openmymind.net/learning_zig/heap_memory/
+> 原文地址：<https://www.openmymind.net/learning_zig/heap_memory>
 
-# 堆内存和分配器（Allocator）
+# 堆和分配器 Heap & Allocator
 
 迄今为止，我们所接触到的一切都有个限制，需要预先知道大小。数组总是有一个编译时已知的长度（事实上，长度是类型的一部分）。我们所有的字符串都是字符串字面量，其长度在编译时是已知的。
 

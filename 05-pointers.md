@@ -1,4 +1,4 @@
-> 原文地址：https://www.openmymind.net/learning_zig/pointers/
+> 原文地址：<https://www.openmymind.net/learning_zig/pointers>
 
 # 指针
 
