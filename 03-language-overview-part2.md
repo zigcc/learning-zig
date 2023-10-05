@@ -13,13 +13,14 @@ Zig 的控制流可能很熟悉，我们将探讨语言方面新增的功能。�
 Zig 的`if`，`else if`和`else`很常见：
 
 ```zig
-    // std.mem.eql 按字节比较，对大小写敏感
+    // std.mem.eql does a byte-by-byte comparison
+    // for a string it'll be case sensitive
     if (std.mem.eql(u8, method, "GET") or std.mem.eql(u8, method, "HEAD")) {
-        // 处理GET请求
+    	// handle a GET request
     } else if (std.mem.eql(u8, method, "POST")) {
-        // 处理POST请求
+    	// handle a POST request
     } else {
-        // ...
+    	// ...
     }
 ```
 
