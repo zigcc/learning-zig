@@ -1,3 +1,6 @@
 
 lint:
-	find . -name '*.md' -exec npx prettier@2.7.1 --write {} \;
+	npx prettier@2.7.1 . --check
+
+format:
+	npx prettier@2.7.1 --write .
