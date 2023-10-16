@@ -108,6 +108,7 @@ const User = struct {
 
 ```zig
 const std = @import("std");
+const builtin = @import("builtin");
 
 pub fn main() !void {
 	var gpa = std.heap.GeneralPurposeAllocator(.{}){};
@@ -127,7 +128,14 @@ pub fn main() !void {
 	while (true) : (i += 1) {
 		var buf: [30]u8 = undefined;
 		try stdout.print("Please enter a name: ", .{});
-		if (try stdin.readUntilDelimiterOrEof(&buf, '\n')) |name| {
+		if (try stdin.readUntilDelimiterOrEof(&buf, '\n')) |line| {
+			var name: []const u8 = line;
+			// Windows平台换行以`\r\n`结束
+			// 所以需要截取\r以获取控制台输入字符
+		        if (builtin.os.tag == .windows) {
+			    name = std.mem.trimRight(u8, line[0 .. line.len - 1], "\r");
+		        }
+
 			if (name.len == 0) {
 				break;
 			}
@@ -216,6 +224,7 @@ defer {
 ```zig
 const std = @import("std");
 const Allocator = std.mem.Allocator;
+const builtin = @import("builtin");
 
 pub fn main() !void {
 	var gpa = std.heap.GeneralPurposeAllocator(.{}){};
@@ -240,7 +249,12 @@ pub fn main() !void {
 	while (true) : (i += 1) {
 		var buf: [30]u8 = undefined;
 		try stdout.print("Please enter a name: ", .{});
-		if (try stdin.readUntilDelimiterOrEof(&buf, '\n')) |name| {
+		if (try stdin.readUntilDelimiterOrEof(&buf, '\n')) |line| {
+			var name: []const u8 = line;
+			if (builtin.os.tag == .windows) {
+				name = std.mem.trimRight(u8, line[0 .. line.len - 1], "\r");
+			}
+
 			if (name.len == 0) {
 				break;
 			}
