@@ -8,9 +8,4 @@ Zig 官网的[下载页面](https://ziglang.org/download/)中包含常见平台�
 
 现在，你可以运行 `zig zen` 和 `zig version` 来测试是否安装正确。
 
-> 译者注：建议读者使用版本管理工具来安装 Zig，社区内目前主要有以下几个：
-
-- [asdf-community/asdf-zig](https://github.com/asdf-community/asdf-zig)
-- [marler8997/zigup](https://github.com/marler8997/zigup)
-- [tristanisham/zvm](https://github.com/tristanisham/zvm)
-- [hendriknielaender/zvm](https://github.com/hendriknielaender/zvm)
+> 译者注：建议读者使用版本管理工具来安装，具体可参考：[《Zig 多版本管理](https://zigcc.github.io/post/2023/10/14/zig-version-manager/)。
