@@ -2,7 +2,7 @@
 title = "学习 Zig"
 description = "Learning Zig 中文翻译"
 authors = ["ZigCC"]
-language = "cn"
+language = "zh-CN"
 multilingual = false
 src = "."
 
