@@ -6,7 +6,7 @@
 
 ## 控制流
 
-Zig 的控制流很可能是我们所熟悉的，但它与 Zig 语言的其他特性协同工作是我们还没有探索过。我们先简单概述控制流的基本是用，之后在讨论依赖控制流的相关特性时，再来重新回顾。
+Zig 的控制流很可能是我们所熟悉的，但它与 Zig 语言的其他特性协同工作是我们还没有探索过。我们先简单概述控制流的基本使用，之后在讨论依赖控制流的相关特性时，再来重新回顾。
 
 你会注意到，我们使用 `and` 和 `or` 来代替逻辑运算符 `&&` 和 `||`。与大多数语言一样，`and` 和 `or` 会短路执行，即如果左侧为假，`and` 的右侧运算符就不会执行；如果左侧为真，`or` 的右侧就不会执行。在 Zig 中，控制流是通过关键字完成的，因此要使用 `and` 和 `or`。
 
@@ -28,7 +28,7 @@ if (std.mem.eql(u8, method, "GET") or std.mem.eql(u8, method, "HEAD")) {
 
 > `std.mem.eql` 的第一个参数是一个类型，这里是 `u8`。这是我们看到的第一个泛型函数。我们将在后面的部分进一步探讨。
 
-上述示例比较的是 ASCII 字符串，因此可能不区分大小写，在这种情况下 `std.ascii.eqlIgnoreCase(str1, str2)` 可能是更好的选择。
+上述示例比较的是 ASCII 字符串，并且应该不区分大小写，在这种情况下 `std.ascii.eqlIgnoreCase(str1, str2)` 可能是更好的选择。
 
 虽然没有三元运算符，但可以使用 if/else 来代替：
 
@@ -36,7 +36,7 @@ if (std.mem.eql(u8, method, "GET") or std.mem.eql(u8, method, "HEAD")) {
 const super = if (power > 9000) true else false;
 ```
 
-`switch` 语句类似于`if/else`，但具有穷举的优点。也就是说，如果没有涵盖所有情况，编译时就会出错。下面这段代码将无法编译：
+`switch` 语句类似于`if/else if/else`，但具有穷举的优点。也就是说，如果没有涵盖所有情况，编译时就会出错。下面这段代码将无法编译：
 
 ```zig
 fn anniversaryName(years_married: u16) []const u8 {
@@ -97,7 +97,7 @@ fn contains(haystack: []const u32, needle: u32) bool {
 
 ```zig
 pub fn eql(comptime T: type, a: []const T, b: []const T) bool {
-	// if they arent' the same length, the can't be equal
+	// if they aren't the same length, they can't be equal
 	if (a.len != b.len) return false;
 
 	for (a, b) |a_elem, b_elem| {
