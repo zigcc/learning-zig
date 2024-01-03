@@ -28,7 +28,8 @@ if (std.mem.eql(u8, method, "GET") or std.mem.eql(u8, method, "HEAD")) {
 
 > `std.mem.eql` 的第一个参数是一个类型，这里是 `u8`。这是我们看到的第一个泛型函数。我们将在后面的部分进一步探讨。
 
-上述示例比较的是 ASCII 字符串，并且应该不区分大小写，在这种情况下 `std.ascii.eqlIgnoreCase(str1, str2)` 可能是更好的选择。
+上述示例比较的是 ASCII 字符串，不区分大小写可能更合适，这时 `std.ascii.eqlIgnoreCase(str1, str2)` 
+ 可能是更好的选择。
 
 虽然没有三元运算符，但可以使用 if/else 来代替：
 
