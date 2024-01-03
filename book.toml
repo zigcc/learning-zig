@@ -8,8 +8,9 @@ src = "."
 
 [output.html]
 git-repository-url = "https://github.com/zigcc/learning-zig"
-git-repository-icon = "fa-github"
 edit-url-template = "https://github.com/zigcc/learning-zig/edit/main/{path}"
+additional-js = ["static/zig-hl.js"]
+additional-css = ["static/last-changed.css"]
 site-url = "/learning-zig/"
 
 [output.html.print]

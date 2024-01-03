@@ -1,5 +1,8 @@
 # [Learning Zig](https://www.openmymind.net/learning_zig/) 中文翻译
 
+[![](https://img.shields.io/discord/1155469703846834187?label=Chat%20on%20Discord)](https://discord.gg/57JR9u7M)
+[![](https://img.shields.io/github/stars/zigcc/learning-zig?style=square&color=#30a14e)](https://github.com/zigcc/learning-zig/stargazers)
+
 > 在线阅读地址：<https://zigcc.github.io/learning-zig>
 
 《学习 Zig》系列教程最初由 [Karl Seguin](https://github.com/karlseguin) 编写，该教程行文流畅，讲述的脉络由浅入深，深入浅出，是入门 Zig 非常不错的选择。因此，[Zig 中文社区](https://zigcc.github.io/)将其翻译成中文，便于在中文用户内阅读与传播。

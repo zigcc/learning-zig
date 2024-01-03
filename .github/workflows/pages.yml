@@ -21,17 +21,25 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-
+        with:
+          fetch-depth: 0
       - name: Setup mdBook
         uses: peaceiris/actions-mdbook@v1
         with:
           mdbook-version: "latest"
-
+      - name: Cache Cargo
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.cargo/bin
+          key: pages-${{ runner.os }}
       - name: Setup Pages
         id: pages
         uses: actions/configure-pages@v4
 
-      - run: mdbook build
+      - run: |
+          cargo install mdbook-last-changed
+          mdbook build
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
