@@ -19,3 +19,7 @@ page-break = true # insert page-break after each chapter
 
 [output.html.search]
 enable = true
+
+[preprocessor.last-changed]
+command = "mdbook-last-changed"
+renderer = ["html"]
