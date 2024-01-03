@@ -83,7 +83,7 @@ std.debug.print("{any}\n", .{@TypeOf(.{.year = 2023, .month = 8})});
 我们已经看到过一些内置函数：`@import`，`@rem`和`@intCast`。因为这些都是函数，他们的命名遵循驼峰命名法。`@TypeOf`也是一个内置函数，但是他遵循 PascalCase，为何？因为他返回的是一个类型，因此它的命名采用了类型命名方法。当我们使用一个变量，去接收`@TypeOf`的返回值，这个变量也需要遵循类型命名规则（即 PascalCase）:
 
 ```
-const T = @TypeOf(3)
+const T = @TypeOf(3);
 std.debug.print("{any}\n", .{T});
 ```
 
