@@ -23,7 +23,6 @@ pub fn main() !void {
 	const goku = User{.power = 9001};
 
 	try lookup.put("Goku", goku);
-	const entry = lookup.getPtr("Goku").?;
 
 	// returns an optional, .? would panic if "Goku"
 	// wasn't in our hashmap
@@ -49,9 +48,9 @@ Goku's power is: 9001
 Goku's power is: -1431655766
 ```
 
-这段代码引入了 Zig 的 `std.StringHashMap`，它是 `std.AutoHashMap` 的特定版本，键类型设置为 `[]const u8`。即使你不能百分百确定发生了什么，也可以猜测我的输出与我们从查找中删除条目后的第二次打印有关。注释掉删除的调用，输出就正常了。
+这段代码引入了 Zig 的 `std.StringHashMap`，它是 `std.AutoHashMap` 的特定版本，键类型设置为 `[]const u8`。即使你不能百分百确定发生了什么，也可以猜测我的输出与我们从 `lookup` 中删除条目后的第二次打印有关。注释掉删除的调用，输出就正常了。
 
-理解上述代码的关键在于了解数据在内存的中位置，或者换句话说，了解数据的所有者。请记住，Zig 参数是按值传递的，也就是说，我们传递的是值的浅副本。我们查找的 `User` 与 `goku` 引用的内存不同。我们上面的代码有两个用户，每个用户都有自己的所有者。`goku` 的所有者是 `main`，而它的副本的所有者是 `lookup`。
+理解上述代码的关键在于了解数据在内存的中位置，或者换句话说，了解数据的所有者。请记住，Zig 参数是按值传递的，也就是说，我们传递的是值的浅副本。我们 `lookup` 中的 `User` 与 `goku` 引用的内存不同。我们上面的代码有两个用户，每个用户都有自己的所有者。`goku` 的所有者是 `main`，而它的副本的所有者是 `lookup`。
 
 `getPtr` 方法返回的是指向 `map` 中值的指针，在我们的例子中，它返回的是 `*User`。问题就在这里，删除会使我们的 `entry`指针失效。在这个示例中，`getPtr` 和 `remove` 的位置很近，因此问题也很明显。但不难想象，代码在调用 `remove` 时，并不知道 `entry` 的引用被保存在其他地方了。
 
@@ -96,13 +95,13 @@ const User = struct {
 };
 ```
 
-上述代码中有许多微妙之处。首先，我们现在只有一个用户 `goku`。`lookup` 和 `entry` 中的值都是对 `goku` 的引用。我们对 `remove` 的调用仍然会删除查找中的值，但该值只是 `user` 的地址，而不是 `user` 本身。如果我们坚持使用 `getPtr`，那么被 `remove` 后，我们就会得到一个无效的 `**User`。在这两种解决方案中，我们都必须使用 `get` 而不是 `getPtr`，但在这种情况下，我们只是复制地址，而不是完整的 `User`。对于占用内存较多的对象来说，这可能是一个很大的区别。
+上述代码中有许多微妙之处。首先，我们现在只有一个用户 `goku`。`lookup` 和 `entry` 中的值都是对 `goku` 的引用。我们对 `remove` 的调用仍然会删除 `lookup` 中的值，但该值只是 `user` 的地址，而不是 `user` 本身。如果我们坚持使用 `getPtr`，那么被 `remove` 后，我们就会得到一个无效的 `**User`。在这两种解决方案中，我们都必须使用 `get` 而不是 `getPtr`，但在这种情况下，我们只是复制地址，而不是完整的 `User`。对于占用内存较多的对象来说，这可能是一个很大的区别。
 
 如果把所有东西都放在一个函数中，再加上一个像 `User` 这样的小值，这仍然像是一个人为制造的问题。我们需要一个能让数据所有权成为当务之急的例子。
 
 ## 所有权 Ownership
 
-我喜欢哈希表（HashMap），因为这是每个人都知道并且会经常使用的结构。它们有很多不同的用例，其中大部分你可能都用过。虽然哈希表可以用在一个局部查找的地方，但通常是从程序的整个运行期常驻的，因此插入其内的值需要同样长的生命周期。
+我喜欢哈希表（HashMap），因为这是每个人都知道并且会经常使用的结构。它们有很多不同的用例，其中大部分你可能都用过。虽然哈希表可以用在一个短期查找的地方，但通常用于长期查找，因此插入其内的值需要同样长的生命周期。
 
 这段代码将使用终端中输入的名称来填充我们的 `lookup`。如果名字为空，就会停止提示循环。最后，它会检测 `Leto` 是否出现在 `lookup` 中。
 
@@ -132,9 +131,9 @@ pub fn main() !void {
 			var name: []const u8 = line;
 			// Windows平台换行以`\r\n`结束
 			// 所以需要截取\r以获取控制台输入字符
-		        if (builtin.os.tag == .windows) {
+			if (builtin.os.tag == .windows) {
 			    name = std.mem.trimRight(u8, line[0 .. line.len - 1], "\r");
-		        }
+			}
 
 			if (name.len == 0) {
 				break;
@@ -379,11 +378,11 @@ fn stringify(
 ) @TypeOf(out_stream).Error!void
 ```
 
-第一个参数 `value: anytype` 是显而易见的，它是要序列化的值，可以是任何类型（实际上，Zig 的 JSON 序列化器不能序列化某些类似，比如 HashMap）。我们可以猜测，`out_stream` 是写入 JSON 的地方，但至于它需要实现什么方法，你和我一样猜得到。唯一的办法就是阅读源代码，或者传递一个假值，然后使用编译器错误作为我们的文档。如果有更好的自动文档生成器，这一点可能会得到改善。不过，我希望 Zig 能提供接口，这已经不是第一次了。
+第一个参数 `value: anytype` 是显而易见的，它是要序列化的值，可以是任何类型（实际上，Zig 的 JSON 序列化器不能序列化某些类型，比如 HashMap）。我们可以猜测，`out_stream` 是写入 JSON 的地方，但至于它需要实现什么方法，你和我一样猜得到。唯一的办法就是阅读源代码，或者传递一个假值，然后使用编译器错误作为我们的文档。如果有更好的自动文档生成器，这一点可能会得到改善。不过，我希望 Zig 能提供接口，这已经不是第一次了。
 
 ## @TypeOf
 
-在前面的部分中，我们使用 `@TypeOf` 来帮助我们检查各种变量的类型。从我们的用法来看，你可能会认为它返回的是字符串类型的名称。然而，鉴于它是一个 PascalCase 风格函数，你应该更清楚：它返回的是一个类型。
+在前面的部分中，我们使用 `@TypeOf` 来帮助我们检查各种变量的类型。从我们的用法来看，你可能会认为它返回的是字符串类型的名称。然而，鉴于它是一个 PascalCase 风格函数，你应该更清楚：它返回的是一个 `type`。
 
 我最喜欢用 `anytype` 与 `@TypeOf` 和 `@hasField` 内置函数搭配使用，以编写测试帮助程序。虽然我们看到的每个 `User` 类型都非常简单，但我还是要请大家想象一下一个有很多字段的更复杂的结构。在许多测试中，我们需要一个 `User`，但我们只想指定与测试相关的字段。让我们创建一个 `userFactory`：
 
@@ -393,7 +392,7 @@ fn userFactory(data: anytype) User {
 	return .{
 		.id = if (@hasField(T, "id")) data.id else 0,
 		.power = if (@hasField(T, "power")) data.power else 0,
-		.active  = if (@hasField(T, "active")) data.name else true,
+		.active  = if (@hasField(T, "active")) data.active else true,
 		.name  = if (@hasField(T, "name")) data.name else "",
 	};
 }
@@ -408,7 +407,7 @@ pub const User = struct {
 
 我们可以通过调用 `userFactory(.{})` 创建默认用户，也可以通过 `userFactory(.{.id = 100, .active = false})` 来覆盖特定字段。这只是一个很小的模式，但我非常喜欢。这也是迈向元编程世界的第一步。
 
-更常见的是 `@TypeOf` 与 `@typeInfo` 配对，后者返回一个 `std.buildin.Type`。这是一个功能强大的带标记的联合（tagged union），可以完整描述一个类型。`std.json.stringify` 函数会递归地调用它，以确定如何将其序列化。
+更常见的是 `@TypeOf` 与 `@typeInfo` 配对，后者返回一个 `std.builtin.Type`。这是一个功能强大的带标签的联合（tagged union），可以完整描述一个类型。`std.json.stringify` 函数会递归地调用它，以确定如何将提供的 `value` 序列化。
 
 # 构建系统
 
