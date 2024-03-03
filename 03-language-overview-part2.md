@@ -15,7 +15,7 @@ Zig 的控制流很可能是我们所熟悉的，但它与 Zig 语言的其他�
 Zig 中，`if`、`else if` 和 `else` 也很常见：
 
 ```zig
-// std.mem.eql 对字符串进行区分大小写的一个一个字节地比较
+// std.mem.eql 将逐字节进行比较，对于字符串来说它是大小写敏感的。
 if (std.mem.eql(u8, method, "GET") or std.mem.eql(u8, method, "HEAD")) {
 	// 处理 GET 请求
 } else if (std.mem.eql(u8, method, "POST")) {
@@ -341,9 +341,8 @@ if (home) |h| {
 
 ```zig
 const h = home orelse "unknown"
-// 或者可能
 
-// 离开函数
+// 或直接返回函数
 const h = home orelse return;
 ```
 

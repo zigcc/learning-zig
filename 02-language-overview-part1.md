@@ -190,10 +190,10 @@ pub const User = struct {
 方法只是普通函数，只是说可以用 `struct.method()` 方式调用。以下两种方法等价：
 
 ```zig
-// 在 user 上调用 diagnose
+// 调用 user 的 diagnose
 user.diagnose();
 
-// 以上是这行代码的语法糖：
+// 上面代码等价于：
 User.diagnose(user);
 ```
 
@@ -276,7 +276,7 @@ const a = [5]i32{1, 2, 3, 4, 5};
 
 const b: [5]i32 = .{1, 2, 3, 4, 5};
 
-// 使用 _ 让编译器推断长度
+// 使用 _ 让编译器推导长度
 const c = [_]i32{1, 2, 3, 4, 5};
 ```
 
