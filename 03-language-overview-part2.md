@@ -15,12 +15,11 @@ Zig 的控制流很可能是我们所熟悉的，但它与 Zig 语言的其他�
 Zig 中，`if`、`else if` 和 `else` 也很常见：
 
 ```zig
-// std.mem.eql does a byte-by-byte comparison
-// for a string it'll be case sensitive
+// std.mem.eql 对字符串进行区分大小写的一个一个字节地比较
 if (std.mem.eql(u8, method, "GET") or std.mem.eql(u8, method, "HEAD")) {
-	// handle a GET request
+	// 处理 GET 请求
 } else if (std.mem.eql(u8, method, "POST")) {
-	// handle a POST request
+	// 处理 POST 请求
 } else {
 	// ...
 }
@@ -156,10 +155,11 @@ while (i < src.len) {
 var i: usize = 0;
 var escape_count: usize = 0;
 
-//                  this part
+// 改写后的
 while (i < src.len) : (i += 1) {
 	if (src[i] == '\\') {
 		// +1 here, and +1 above == +2
+		// 这里 +1，上面也 +1，相当于 +2
 		i += 1;
 		escape_count += 1;
 	}
@@ -199,7 +199,7 @@ const personality_analysis = blk: {
 枚举是带有标签的整数常量。它们的定义很像结构体：
 
 ```zig
-// could be "pub"
+// 可以是 "pub" 的
 const Status = enum {
 	ok,
 	bad,
@@ -341,9 +341,9 @@ if (home) |h| {
 
 ```zig
 const h = home orelse "unknown"
-// or maybe
+// 或者可能
 
-// exit our function
+// 离开函数
 const h = home orelse return;
 ```
 
@@ -373,8 +373,8 @@ std.crypto.random.bytes(&pseudo_uuid);
 Zig 中错误处理功能十分简单、实用。这一切都从错误集（error sets）开始，错误集的使用方式类似于枚举：
 
 ```zig
-// Like our struct in Part 1, OpenError can be marked as "pub"
-// to make it accessible outside of the file it is defined in
+// 与第 1 部分中的结构一样，OpenError 也可以标记为 "pub"。
+// 使其可以在其定义的文件之外访问
 const OpenError = error {
 	AccessDenied,
 	NotFound,
@@ -475,7 +475,7 @@ try action(req, res);
 函数同时返回可选类型与错误联合类型的情况并不少见。在推导错误集的情况下，形式如下：
 
 ```zig
-// load the last saved game
+// 载入上次保存的游戏
 pub fn loadLast() !?Save {
 	// TODO
 	return null;
