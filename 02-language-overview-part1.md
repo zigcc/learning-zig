@@ -9,7 +9,7 @@ Zig 代码如下所示：
 ```zig
 const std = @import("std");
 
-// This code won't compile if `main` isn't `pub` (public)
+// 如果 `main` 不是 `pub` (public)，此代码将无法编译
 pub fn main() void {
 	const user = User{
 		.power = 9001,
@@ -87,7 +87,7 @@ const MAX_POWER = user.MAX_POWER
 下面这行 Zig 代码是一个注释：
 
 ```zig
-// This code won't compile if `main` isn't `pub` (public)
+// 如果 `main` 不是 `pub` (public)，此代码将无法编译
 ```
 
 Zig 没有像 C 语言中类似 `/* ... */` 的多行注释。
@@ -190,10 +190,10 @@ pub const User = struct {
 方法只是普通函数，只是说可以用 `struct.method()` 方式调用。以下两种方法等价：
 
 ```zig
-// call diagnose on user
+// 调用 user 的 diagnose
 user.diagnose();
 
-// The above is syntactical sugar for:
+// 上面代码等价于：
 User.diagnose(user);
 ```
 
@@ -271,11 +271,12 @@ pub fn init(name: []const u8, power: u64) User {
 ```zig
 const a = [5]i32{1, 2, 3, 4, 5};
 
-// we already saw this .{...} syntax with structs
-// it works with arrays too
+// 我们已经在结构体中使用过 .{...} 语法，
+// 它也适用于数组
+
 const b: [5]i32 = .{1, 2, 3, 4, 5};
 
-// use _ to let the compiler infer the length
+// 使用 _ 让编译器推导长度
 const c = [_]i32{1, 2, 3, 4, 5};
 ```
 
@@ -320,7 +321,7 @@ pub fn main() void {
 为了解决这个问题，你可能会想要进行以下更改：
 
 ```zig
-// replace const with var
+// 将 const 替换为 var
 var b = a[1..end];
 ```
 
@@ -403,7 +404,7 @@ std.debug.print("{s}'s power is {d}\n", .{user.name, user.power});
 你可能想知道上面这行代码中需要编译时执行的是什么。`print` 函数的定义要求我们的第一个参数（字符串格式）是编译时已知的：
 
 ```zig
-// notice the "comptime" before the "fmt" variable
+// 注意变量"fmt"前的"comptime"
 pub fn print(comptime fmt: []const u8, args: anytype) void {
 ```
 

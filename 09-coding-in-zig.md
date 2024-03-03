@@ -154,7 +154,7 @@ const User = struct {
 上述代码虽然区分大小写，但无论我们如何完美地输入 `Leto`，`contains` 总是返回 `false`。让我们通过遍历 `lookup` 打印其值来调试一下：
 
 ```zig
-// Place this code after the while loop
+// 将这段代码放在 while 循环之后
 
 var it = lookup.iterator();
 while (it.next()) |kv| {
@@ -184,7 +184,7 @@ false
 对于上述代码，实际上只有一种解决方案：我们的 `lookup` 必须拥有键的所有权。我们需要添加一行并修改另一行：
 
 ```zig
-// replace the existing lookup.put with these two lines
+// 用这两行替换现有的 lookup.put
 const owned_name = try allocator.dupe(u8, name);
 
 // name -> owned_name
@@ -198,9 +198,7 @@ try lookup.put(owned_name, .{.power = i});
 唯一的解决办法就是自己释放键值。在这一点上，创建我们自己的 `UserLookup` 类型并在 `deinit` 函数中封装这一清理逻辑可能会比较合理。一种简单的改法：
 
 ```zig
-// replace the existing:
-//   defer lookup.deinit();
-// with:
+// 用以下的代码替换现有的 defer lookup.deinit();
 defer {
 	var it = lookup.keyIterator();
 	while (it.next()) |key| {
@@ -367,9 +365,8 @@ pub fn main() !void {
 `anytype` 的一个最大缺点就是文档。下面是我们用过几次的 `std.json.stringify` 函数的签名：
 
 ```zig
-// I **hate** multi-line function definitions
-// But I'll make an exception for a guide which
-// you might be reading on a small screen.
+// 我**讨厌**多行函数定义
+// 不过，鉴于你可能在小屏幕上阅读这个指南，因此这里破一次例。
 
 fn stringify(
 	value: anytype,
@@ -456,7 +453,7 @@ zig build install -Doptimize=ReleaseSmall -Dtarget=x86_64-windows-gnu
 除了默认的『安装』步骤外，可执行文件通常还会增加两个步骤：『运行』和『测试』。一个库可能只有一个『测试』步骤。对于基本的无参数即可运行的程序来说，只需要在构建文件的最后添加四行：
 
 ```zig
-// add after: b.installArtifact(exe);
+// 在这行代码后添加下面的代码: b.installArtifact(exe);
 
 const run_cmd = b.addRunArtifact(exe);
 run_cmd.step.dependOn(b.getInstallStep());
@@ -501,8 +498,7 @@ Zig 的内置软件包管理器相对较新，因此存在一些缺陷。虽然�
 首先，新建一个名为 `calc` 的文件夹并创建三个文件。第一个是 `add.zig`，内容如下：
 
 ```zig
-// Oh, a hidden lesson, look at the type of b
-// and the return type!!
+// 哦，下面的函数定义中有语法之前没讲过，看看 b 的类型和返回类型！！
 
 pub fn add(a: anytype, b: @TypeOf(a)) @TypeOf(a) {
 	return a + b;
@@ -555,8 +551,8 @@ pub fn build(b: *std.Build) !void {
 回到我们的 `learning`项目和之前创建的 `build.zig`。首先，我们将添加本地 `calc` 作为依赖项。我们需要添加三项内容。首先，我们将创建一个指向 `calc.zig`的模块：
 
 ```zig
-// You can put this near the top of the build
-// function, before the call to addExecutable.
+// 你可以把这些代码放在构建函数的顶部，
+// 即调用 addExecutable 之前。
 
 const calc_module = b.addModule("calc", .{
 	.source_file = .{ .path = "PATH_TO_CALC_PROJECT/calc.zig" },
@@ -572,7 +568,7 @@ const exe = b.addExecutable(.{
 	.optimize = optimize,
 	.root_source_file = .{ .path = "learning.zig" },
 });
-// add this
+// 添加这些代码
 exe.addModule("calc", calc_module);
 b.installArtifact(exe);
 
@@ -583,7 +579,7 @@ const tests = b.addTest(.{
 	.optimize = optimize,
 	.root_source_file = .{ .path = "learning.zig" },
 });
-// add this
+// 添加这行代码
 tests.addModule("calc", calc_module);
 ```
 
@@ -625,12 +621,12 @@ _ = b.addModule("calc", .{
 要使用这一依赖关系，我们需要对 `build.zig` 进行一处修改：
 
 ```zig
-// replace this:
+// 将这些代码:
 const calc_module = b.addModule("calc", .{
 	.source_file = .{ .path = "calc/calc.zig" },
 });
 
-// with this:
+// 替换成:
 const calc_dep = b.dependency("calc", .{.target = target,.optimize = optimize});
 const calc_module = calc_dep.module("calc");
 ```

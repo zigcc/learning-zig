@@ -140,7 +140,7 @@ fn allocLower(allocator: Allocator, str: []const u8) ![]const u8 {
 上面的代码没问题。但以下用法不是:
 
 ```zig
-// For this specific code, we should have used std.ascii.eqlIgnoreCase
+// 对于这个特定的代码，我们应该使用 std.ascii.eqlIgnoreCase
 fn isSpecial(allocator: Allocator, name: [] const u8) !bool {
 	const lower = try allocLower(allocator, name);
 	return std.mem.eql(u8, lower, "admin");
@@ -211,7 +211,7 @@ pub const User = struct {
 在这种情况下，返回一个 `User`可能更有意义。但有时你会希望函数返回一个指向它所创建的东西的指针。当你想让生命周期不受调用栈的限制时，你就会这样做。为了解决上面的悬空指针问题，我们可以使用`create` 方法：
 
 ```zig
-// our return type changed, since init can now fail
+// 我们的返回类型改变了，因为 init 现在可以失败了
 // *User -> !*User
 fn init(allocator: std.mem.Allocator, id: u64, power: i32) !*User{
 	var user = try allocator.create(User);
@@ -284,7 +284,7 @@ pub fn main() !void {
 const T = std.heap.GeneralPurposeAllocator(.{});
 var gpa = T{};
 
-// is the same as:
+// 等同于:
 
 var gpa = std.heap.GeneralPurposeAllocator(.{}){};
 ```
@@ -406,12 +406,12 @@ Test [1/1] test.IntList: add... [gpa] (err): memory address 0x101154000 leaked:
 此处有多个内存泄漏。幸运的是，测试分配器准确地告诉我们泄漏的内存是在哪里分配的。你现在能发现泄漏了吗？如果没有，请记住，通常情况下，每个 `alloc` 都应该有一个相应的 `free`。我们的代码在 `deinit` 中调用 `free` 一次。然而在 `init` 中 `alloc` 被调用一次，每次调用 `add` 并需要更多空间时也会调用 `alloc`。每次我们 `alloc` 更多空间时，都需要 `free` 之前的 `self.items`。
 
 ```zig
-// existing code
+// 现有的代码
 var larger = try self.allocator.alloc(i64, len * 2);
 @memcpy(larger[0..len], self.items);
 
-// Added code
-// free the previous allocation
+// 添加的代码
+// 释放先前分配的内存
 self.allocator.free(self.items);
 ```
 
@@ -490,8 +490,9 @@ const aa = arena.allocator();
 
 var list = try IntList.init(aa);
 
-// I'm honestly torn on whether or not we should call list.deinit.
-// Technically, we don't have to since we call defer arena.deinit() above.
+// 说实话，我很纠结是否应该调用 list.deinit。
+// 从技术上讲，我们不必这样做，因为我们在上面调用了 defer arena.deinit()。
+
 defer list.deinit();
 
 ...
