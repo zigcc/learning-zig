@@ -36,8 +36,8 @@ pub fn main() !void {
 
 fn getRandomCount() !u8 {
 	var seed: u64 = undefined;
-	try std.os.getrandom(std.mem.asBytes(&seed));
-	var random = std.rand.DefaultPrng.init(seed);
+	try std.posix.getrandom(std.mem.asBytes(&seed));
+	var random = std.Random.DefaultPrng.init(seed);
 	return random.random().uintAtMost(u8, 5) + 5;
 }
 ```
@@ -214,7 +214,7 @@ pub const User = struct {
 // 我们的返回类型改变了，因为 init 现在可以失败了
 // *User -> !*User
 fn init(allocator: std.mem.Allocator, id: u64, power: i32) !*User{
-	var user = try allocator.create(User);
+	const user = try allocator.create(User);
 	user.* = .{
 		.id = id,
 		.power = power,
@@ -423,7 +423,7 @@ self.allocator.free(self.items);
 
 ```zig
 fn parse(allocator: Allocator, input: []const u8) !Something {
-	var state = State{
+	const state = State{
 		.buf = try allocator.alloc(u8, 512),
 		.nesting = try allocator.alloc(NestType, 10),
 	};
@@ -448,7 +448,7 @@ fn parse(allocator: Allocator, input: []const u8) !Something {
 	// the allocator we'll use internally
 	const aa = arena.allocator();
 
-	var state = State{
+	const state = State{
 		// we're using aa here!
 		.buf = try aa.alloc(u8, 512),
 
@@ -514,6 +514,8 @@ const std = @import("std");
 pub fn main() !void {
 	var buf: [150]u8 = undefined;
 	var fa = std.heap.FixedBufferAllocator.init(&buf);
+
+	// this will free all memory allocate with this allocator
 	defer fa.reset();
 
 	const allocator = fa.allocator();
@@ -523,6 +525,9 @@ pub fn main() !void {
 		.above = true,
 		.last_param = "are options",
 	}, .{.whitespace = .indent_2});
+
+	// We can free this allocation, but since we know that our allocator is
+	// a FixedBufferAllocator, we can rely on the above `defer fa.reset()`
 	defer allocator.free(json);
 
 	std.debug.print("{s}\n", .{json});
@@ -569,6 +574,8 @@ pub fn main() !void {
 动态分配的另一个可行替代方案是将数据流传输到 `std.io.Writer`。与我们的 `Allocator` 一样，`Writer` 也是被许多具体类型实现的接口。上面，我们使用 `stringifyAlloc` 将 JSON 序列化为动态分配的字符串。我们本可以使用 `stringify` 将其写入到一个 Writer 中：
 
 ```zig
+const std = @import("std");
+
 pub fn main() !void {
 	const out = std.io.getStdOut();
 

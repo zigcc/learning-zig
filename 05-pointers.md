@@ -34,7 +34,22 @@ pub const User = struct {
 };
 ```
 
-这是一个不怀好意的小把戏；代码无法编译：**不能赋值给常量**。我们在第一部分中看到函数参数是常量，因此 `user.power += 1` 是无效的。为了解决这个错误，我们可以将 `levelUp` 函数改为
+那是个不太友善的把戏；代码无法编译：_局部变量从未被修改_。这是指 `main` 函数中的 `user` 变量。一个从未被修改的变量必须声明为 const。你可能会想：但在 `levelUp` 函数中我们确实修改了 `user`，这怎么回事？让我们假设 Zig 编译器弄错了，并试着糊弄它。我们将强制让编译器看到 `user` 确实被修改了：
+
+```zig
+const std = @import("std");
+
+pub fn main() void {
+	var user = User{
+		.id = 1,
+		.power = 100,
+	};
+	user.power += 0;
+
+	// 代码的其余部分保持不变。
+```
+
+现在我们在 `levelUp` 中遇到了一个错误：**不能赋值给常量**。我们在第一部分中看到函数参数是常量，因此 `user.power += 1` 是无效的。为了解决这个错误，我们可以将 `levelUp` 函数改为
 
 ```zig
 fn levelUp(user: User) void {
@@ -62,7 +77,7 @@ user -> ------------ (id)
 
 请记住，我们的`user`也有一个类型。该类型告诉我们 `id` 是一个 64 位整数，`power` 是一个 32 位整数。有了对数据起始位置的引用和类型，编译器就可以将 `user.power` 转换为：访问位置在结构体第 64 位上的一个 32 位整数。这就是变量的威力，它们可以引用内存，并包含以有意义的方式理解和操作内存所需的类型信息。
 
-> 默认情况下，Zig 不保证结构的内存布局。它可以按字母顺序、大小升序或插入填充（padding）某些字段。只要它能正确翻译我们的代码，它就可以为所欲为。这种自由度可以实现某些优化。只有在声明 `packed struct`时，我们才能获得内存布局的有力保证。尽管如此，我们对`user`的可视化还是合理而有用的。
+> 默认情况下，Zig 不保证结构的内存布局。它可以按字母顺序、大小升序或插入填充（padding）某些字段。只要它能正确翻译我们的代码，它就可以为所欲为。这种自由度可以实现某些优化。只有在声明 `packed struct`时，我们才能获得内存布局的有力保证。我们还可以创建一个 extern struct，这样可以保证内存布局与 C 应用程序二进制接口 (ABI) 匹配。尽管如此，我们对`user`的可视化还是合理而有用的。
 
 下面是一个稍有不同的可视化效果，其中包括内存地址。这些数据的起始内存地址是我想出来的一个随机地址。这是`user`变量引用的内存地址，也是第一个字段 `id` 的值所在的位置。由于 `id` 是一个 64 位整数，需要 8 字节内存。因此，`power` 必须位于 `$start_address + 8` 上：
 
@@ -78,7 +93,7 @@ user ->   ------------  (id: 1043368d0)
 
 ```zig
 pub fn main() void {
-	var user = User{
+	const user = User{
 		.id = 1,
 		.power = 100,
 	};
@@ -102,6 +117,7 @@ pub fn main() void {
 		.id = 1,
 		.power = 100,
 	};
+	user.power += 0;
 
 	const user_p = &user;
 	std.debug.print("{any}\n", .{@TypeOf(user_p)});
@@ -112,10 +128,11 @@ pub fn main() void {
 
 ```zig
 pub fn main() void {
-	const user = User{
+	var user = User{
 		.id = 1,
 		.power = 100,
 	};
+	user.power += 0;
 
 	// added this
 	std.debug.print("main: {*}\n", .{&user});
@@ -143,6 +160,9 @@ pub fn main() void {
 		.power = 100,
 	};
 
+	// no longer needed
+	// user.power += 1;
+
 	// user -> &user
 	levelUp(&user);
 	std.debug.print("User {d} has power of {d}\n", .{user.id, user.power});
@@ -160,6 +180,8 @@ pub const User = struct {
 ```
 
 我们必须做两处改动。首先是用 `user` 的地址（即 `&user` ）来调用 `levelUp`，而不是 `user`。这意味着我们的函数参数不再是 `User`，取而代之的是一个 `*User`，这是我们的第二处改动。
+
+我们不再需要通过 user.power += 0; 来强制修改 user 的那个丑陋的技巧了。最初，我们因为 user 是 var 类型而无法让代码编译，编译器告诉我们它从未被修改。我们以为编译器错了，于是通过强制修改来“糊弄”它。但正如我们现在所知道的，在 levelUp 中被修改的 user 是不同的；编译器是正确的。
 
 现在，代码已按预期运行。虽然在函数参数和内存模型方面仍有许多微妙之处，但我们正在取得进展。现在也许是一个好时机来说明一下，除了特定的语法之外，这些都不是 Zig 所独有的。我们在这里探索的模型是最常见的，有些语言可能只是向开发者隐藏了很多细节，因此也就隐藏了灵活性。
 
@@ -321,7 +343,7 @@ const std = @import("std");
 
 pub fn main() void {
 	var name = [4]u8{'G', 'o', 'k', 'u'};
-	var user = User{
+	const user = User{
 		.id = 1,
 		.power = 100,
 		// slice it, [4]u8 -> []u8

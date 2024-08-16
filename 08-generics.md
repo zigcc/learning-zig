@@ -90,8 +90,8 @@ fn List(comptime T: type) type {
 				.items = try allocator.alloc(T, 4),
 			};
 		}
-	}
-};
+	};
+}
 ```
 
 上面的结构与 `IntList` 几乎完全相同，只是 `i64` 被替换成了 `T`。我们本可以叫它 `item_type`。不过，按照 Zig 的命名约定，`type` 类型的变量使用 `PascalCase` 风格。
