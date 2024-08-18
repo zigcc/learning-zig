@@ -128,11 +128,11 @@ pub fn main() !void {
 		var buf: [30]u8 = undefined;
 		try stdout.print("Please enter a name: ", .{});
 		if (try stdin.readUntilDelimiterOrEof(&buf, '\n')) |line| {
-			var name: []const u8 = line;
+			var name = line;
 			// Windows平台换行以`\r\n`结束
 			// 所以需要截取\r以获取控制台输入字符
 			if (builtin.os.tag == .windows) {
-			    name = std.mem.trimRight(u8, line[0 .. line.len - 1], "\r");
+			    name = @constCast(std.mem.trimRight(u8, name, "\r"));
 			}
 
 			if (name.len == 0) {
@@ -247,9 +247,9 @@ pub fn main() !void {
 		var buf: [30]u8 = undefined;
 		try stdout.print("Please enter a name: ", .{});
 		if (try stdin.readUntilDelimiterOrEof(&buf, '\n')) |line| {
-			var name: []const u8 = line;
+			var name = line;
 			if (builtin.os.tag == .windows) {
-				name = std.mem.trimRight(u8, line[0 .. line.len - 1], "\r");
+				name = @constCast(std.mem.trimRight(u8, name, "\r"));
 			}
 
 			if (name.len == 0) {
@@ -438,7 +438,7 @@ pub fn build(b: *std.Build) !void {
 		.name = "learning",
 		.target = target,
 		.optimize = optimize,
-		.root_source_file = .{ .path = "learning.zig" },
+		.root_source_file = b.path("learning.zig"),
 	});
 	b.installArtifact(exe);
 }
@@ -470,7 +470,7 @@ run_step.dependOn(&run_cmd.step);
 const tests = b.addTest(.{
 	.target = target,
 	.optimize = optimize,
-	.root_source_file = .{ .path = "learning.zig" },
+	.root_source_file = b.path("learning.zig"),
 });
 
 const test_cmd = b.addRunArtifact(tests);
@@ -489,7 +489,7 @@ test "dummy build test" {
 
 现在运行 `zig build test`时，应该会出现测试失败。如果你修复了测试，并再次运行 `zig build test`，你将不会得到任何输出。默认情况下，Zig 的测试运行程序只在失败时输出结果。如果你像我一样，无论成功还是失败，都想要一份总结，那就使用 `zig build test --summary all`。
 
-这是启动和运行构建系统所需的最低配置。但是请放心,如果你需要构建你的程序，Zig 内置的功能大概率能覆盖你的需求。最后，你可以（也应该）在你的项目根目录下使用 `zig init-exe` 或 `zig init-lib`，让 Zig 为你创建一个文档齐全的 `build.zig` 文件。
+这是启动和运行构建系统所需的最低配置。但是请放心,如果你需要构建你的程序，Zig 内置的功能大概率能覆盖你的需求。最后，你可以（也应该）在你的项目根目录下使用 `zig init`，让 Zig 为你创建一个文档齐全的 `build.zig` 文件。
 
 ## 第三方依赖
 
@@ -536,7 +536,7 @@ pub fn build(b: *std.Build) !void {
 	const tests = b.addTest(.{
 		.target = target,
 		.optimize = optimize,
-		.root_source_file = .{ .path = "calc.zig" },
+		.root_source_file = b.path("calc.zig"),
 	});
 
 	const test_cmd = b.addRunArtifact(tests);
@@ -555,32 +555,59 @@ pub fn build(b: *std.Build) !void {
 // 即调用 addExecutable 之前。
 
 const calc_module = b.addModule("calc", .{
-	.source_file = .{ .path = "PATH_TO_CALC_PROJECT/calc.zig" },
+	.root_source_file = b.path("PATH_TO_CALC_PROJECT/calc.zig"),
 });
 ```
 
-您需要调整 `calc.zig` 的路径。现在，我们需要将此模块添加到现有的 `exe` 和 `tests` 中：
+你需要调整 `calc.zig` 的路径。现在，我们需要将这个模块添加到现有的 `exe` 和 `tests` 变量中。由于我们的 build.zig 变得越来越复杂，我们将尝试稍微组织一下：
 
 ```zig
-const exe = b.addExecutable(.{
-	.name = "learning",
-	.target = target,
-	.optimize = optimize,
-	.root_source_file = .{ .path = "learning.zig" },
-});
-// 添加这些代码
-exe.addModule("calc", calc_module);
-b.installArtifact(exe);
+const std = @import("std");
 
-....
+pub fn build(b: *std.Build) !void {
+	const target = b.standardTargetOptions(.{});
+	const optimize = b.standardOptimizeOption(.{});
 
-const tests = b.addTest(.{
-	.target = target,
-	.optimize = optimize,
-	.root_source_file = .{ .path = "learning.zig" },
-});
-// 添加这行代码
-tests.addModule("calc", calc_module);
+	const calc_module = b.addModule("calc", .{
+		.root_source_file = b.path("PATH_TO_CALC_PROJECT/calc.zig"),
+	});
+
+	{
+		// 设置我们的 "run" 命令。
+
+		const exe = b.addExecutable(.{
+			.name = "learning",
+			.target = target,
+			.optimize = optimize,
+			.root_source_file = b.path("learning.zig"),
+		});
+		// 添加这些代码
+		exe.root_module.addImport("calc", calc_module);
+		b.installArtifact(exe);
+
+		const run_cmd = b.addRunArtifact(exe);
+		run_cmd.step.dependOn(b.getInstallStep());
+
+		const run_step = b.step("run", "Start learning!");
+		run_step.dependOn(&run_cmd.step);
+	}
+
+	{
+		// 设置我们的 "test" 命令。
+		const tests = b.addTest(.{
+			.target = target,
+			.optimize = optimize,
+			.root_source_file = b.path("learning.zig"),
+		});
+		// 添加这行代码
+		tests.root_module.addImport("calc", calc_module);
+
+		const test_cmd = b.addRunArtifact(tests);
+		test_cmd.step.dependOn(b.getInstallStep());
+		const test_step = b.step("test", "Run the tests");
+		test_step.dependOn(&test_cmd.step);
+	}
+}
 ```
 
 现在，可以在项目中 `@import("calc")`：
@@ -595,7 +622,7 @@ calc.add(1, 2);
 
 ```zig
 _ = b.addModule("calc", .{
-	.source_file = .{ .path = "calc.zig" },
+	.root_source_file = b.path("calc.zig"),
 });
 ```
 
@@ -606,24 +633,25 @@ _ = b.addModule("calc", .{
 ```zig
 .{
   .name = "learning",
+  .paths = .{""},
   .version = "0.0.0",
   .dependencies = .{
     .calc = .{
-      .url = "https://github.com/karlseguin/calc.zig/archive/e43c576da88474f6fc6d971876ea27effe5f7572.tar.gz",
+      .url = "https://github.com/karlseguin/calc.zig/archive/d1881b689817264a5644b4d6928c73df8cf2b193.tar.gz",
       .hash = "12ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
     },
   },
 }
 ```
 
-该文件中有两个可疑值，第一个是 url 中的 e43c576da88474f6fc6d971876ea27effe5f7572。这只是 git 提交的哈希值。第二个是哈希值。据我所知，目前还没有很好的方法来告诉我们这个值应该是多少，所以我们暂时使用一个假值。
+该文件中有两个可疑值，第一个是 url 中的 d1881b689817264a5644b4d6928c73df8cf2b193<。这只是 git 提交的哈希值。第二个是哈希值。据我所知，目前还没有很好的方法来告诉我们这个值应该是多少，所以我们暂时使用一个假值。
 
 要使用这一依赖关系，我们需要对 `build.zig` 进行一处修改：
 
 ```zig
 // 将这些代码:
 const calc_module = b.addModule("calc", .{
-	.source_file = .{ .path = "calc/calc.zig" },
+	.root_source_file = b.path("calc/calc.zig"),
 });
 
 // 替换成:
@@ -636,12 +664,11 @@ const calc_module = calc_dep.module("calc");
 如果你尝试运行 `zig build test`，应该会看到一个错误：
 
 ```bash
-error: hash mismatch:
-expected:
-12ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff,
+hash mismatch: manifest declares
+122053da05e0c9348d91218ef015c8307749ef39f8e90c208a186e5f444e818672da
 
-found:
-122053da05e0c9348d91218ef015c8307749ef39f8e90c208a186e5f444e818672d4
+but the fetched package has
+122036b1948caa15c2c9054286b3057877f7b152a5102c9262511bf89554dc836ee5
 ```
 
 将正确的哈希值复制并粘贴回 `build.zig.zon`，然后再次尝试运行 `zig build test`，现在一切应该都正常了。

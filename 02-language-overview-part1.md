@@ -2,7 +2,7 @@
 
 # 语言概述 - 第 1 部分
 
-Zig 是一种强类型编译语言。它支持泛型，具有强大的编译时元编程功能，并且不包含垃圾收集器。许多人认为 Zig 是 C 的现代替代品。因此，该语言的语法与 C 类似，比较明显的就是以分号结尾的语句和以花括号分隔的块。
+Zig 是一种强类型编译语言。它支持泛型，具有强大的编译时元编程功能，并且**不包含**垃圾收集器。许多人认为 Zig 是 C 的现代替代品。因此，该语言的语法与 C 类似，比较明显的就是以分号结尾的语句和以花括号分隔的块。
 
 Zig 代码如下所示：
 
@@ -73,7 +73,7 @@ pub const User = struct {
 ```zig
 const user = @import("models/user.zig");
 const User = user.User;
-const MAX_POWER = user.MAX_POWER
+const MAX_POWER = user.MAX_POWER;
 ```
 
 此时，你可能会有更多的困惑。在上面的代码片段中，`user` 是什么？我们还没有看到它，如果使用 `var` 来代替 `const` 会有什么不同呢？或者你可能想知道如何使用第三方库。这些都是好问题，但要回答这些问题，需要掌握更多 Zig 的知识点。因此，我们现在只需要掌握以下内容：
@@ -151,7 +151,7 @@ pub const User = struct {
 };
 ```
 
-> 由于我们的程序是单个文件，因此 `User` 仅在定义它的文件中使用，因此我们不需要将其设为 `pub` 。
+> 由于我们的程序是单个文件，因此 `User` 仅在定义它的文件中使用，因此我们不需要将其设为 `pub` 。但这样一来，我们就看不到如何将声明暴露给其他文件了。
 
 结构字段以逗号终止，并且可以指定默认值：
 
@@ -179,7 +179,7 @@ pub const User = struct {
 
 	pub const SUPER_POWER = 9000;
 
-	fn diagnose(user: User) void {
+	pub fn diagnose(user: User) void {
 		if (user.power >= SUPER_POWER) {
 			std.debug.print("it's over {d}!!!", .{SUPER_POWER});
 		}
@@ -295,7 +295,8 @@ const b = a[1..4];
 
 ```zig
 const a = [_]i32{1, 2, 3, 4, 5};
-var end: usize = 4;
+var end: usize = 3;
+end += 1;
 const b = a[1..end];
 ```
 
@@ -310,7 +311,8 @@ const std = @import("std");
 
 pub fn main() void {
 	const a = [_]i32{1, 2, 3, 4, 5};
-	var end: usize = 4;
+	var end: usize = 3;
+	end += 1;
 	const b = a[1..end];
 	std.debug.print("{any}", .{@TypeOf(b)});
 }
@@ -325,14 +327,15 @@ pub fn main() void {
 var b = a[1..end];
 ```
 
-但你会得到同样的错误，为什么？作为提示，`b` 的类型是什么，或者更通俗地说，`b` 是什么？切片是指向数组（部分）的长度和指针。切片的类型总是从底层数组派生出来的。无论 `b` 是否声明为 `const`，底层数组都是 `[5]const i32` 类型，因此 b 必须是 `[]const i32` 类型。如果我们想写入 `b`，就需要将 `a` 从 `const` 变为 `var`。
+但你会得到同样的错误，为什么？作为提示，`b` 的类型是什么，或者更通俗地说，`b` 是什么？切片是指向数组（部分）的长度和指针。切片的类型总是从它所切分的对象派生出来的。无论 `b` 是否声明为 `const`，都是一个 `[5]const i32` 的切片，因此 b 必须是 `[]const i32` 类型。如果我们想写入 `b`，就需要将 `a` 从 `const` 变为 `var`。
 
 ```zig
 const std = @import("std");
 
 pub fn main() void {
 	var a = [_]i32{1, 2, 3, 4, 5};
-	var end: usize = 4;
+	var end: usize = 3;
+	end += 1;
 	const b = a[1..end];
 	b[2] = 99;
 }
@@ -345,7 +348,8 @@ const std = @import("std");
 
 pub fn main() void {
 	var a = [_]i32{1, 2, 3, 4, 5};
-	var end: usize = 4;
+	var end: usize = 3;
+	end += 1;
 	const b = a[1..end];
 	b = b[1..];
 }
@@ -437,6 +441,6 @@ pub fn main() void {
 struct{comptime year: comptime_int = 2023, comptime month: comptime_int = 8}
 ```
 
-在这里，我们给匿名结构的字段取名为 `year` 和 `month`。在原始代码中，我们没有这样做。在这种情况下，字段名会自动生成 0、1、2 等。`print` 函数希望结构中包含此类字段，并使用字符串格式中的序号位置来获取适当的参数。
+在这里，我们给匿名结构的字段取名为 `year` 和 `month`。在原始代码中，我们没有这样做。在这种情况下，字段名会自动生成 0、1、2 等。虽然它们都是匿名结构字面形式的示例，但没有字段名称的结构通常被称为“元组”（tuple）。`print` 函数希望接收一个元组，并使用字符串格式中的序号位置来获取适当的参数。
 
 Zig 没有函数重载，也没有可变函数（vardiadic，具有任意数量参数的函数）。但它的编译器能根据传入的类型创建专门的函数，包括编译器自己推导和创建的类型。

@@ -31,7 +31,7 @@ pub fn main() void {
 
 	// or
 
-	sum = add(8999, 2);
+	const sum = add(8999, 2);
 	_ = sum;
 }
 
@@ -74,7 +74,7 @@ fn read(stream: std.net.Stream) ![]const u8 {
 
 Zig 代码采用 4 个空格进行缩进。我个人会因为客观上更方便，使用`tab`键。
 
-Zig 的函数名采用了驼峰命名法（camelCase)，而变量名会采用小写加下划线（snake case)的命名方式。类型则采用的是 PascalCase 风格。除了这三条规则外，一个有趣的交叉规则是，如果一个变量表示一个类型，或者一个函数返回一个类型，那么这个变量或者函数遵循 PascalCase。在之前的章节中，其实已经见到了这个例子，不过，可能你没有注意到：
+Zig 的函数名采用了驼峰命名法（camelCase），而变量名会采用小写加下划线（snake case）的命名方式。类型则采用的是 PascalCase 风格。除了这三条规则外，一个有趣的交叉规则是，如果一个变量表示一个类型，或者一个函数返回一个类型，那么这个变量或者函数遵循 PascalCase。在之前的章节中，其实已经见到了这个例子，不过，可能你没有注意到：
 
 ```zig
 std.debug.print("{any}\n", .{@TypeOf(.{.year = 2023, .month = 8})});

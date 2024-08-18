@@ -132,24 +132,31 @@ fn indexOf(haystack: []const u32, needle: u32) ?usize {
 }
 ```
 
+> 这是对可空类型的初步了解。
+
 范围的末端由 `haystack` 的长度推断，不过我们也可以写出 `0..haystack.len`，但这没有必要。`for` 循环不支持常见的 `init; compare; step` 风格，对于这种情况，可以使用 `while`。
 
 因为 `while` 比较简单，形式如下：`while (condition) { }`，这有利于更好地控制迭代。例如，在计算字符串中转义序列的数量时，我们需要将迭代器递增 2 以避免重复计算 `\\`：
 
 ```zig
-var i: usize = 0;
 var escape_count: usize = 0;
-while (i < src.len) {
-	if (src[i] == '\\') {
-		i += 2;
-		escape_count += 1;
-	} else {
-		i += 1;
+{
+	var i: usize = 0;
+	// 反斜杠用作转义字符，因此我们需要用一个反斜杠来转义它。
+	while (i < src.len) {
+		if (src[i] == '\\') {
+			i += 2;
+			escape_count += 1;
+		} else {
+			i += 1;
+		}
 	}
 }
 ```
 
-`while` 可以包含 `else` 子句，当条件为假时执行 `else` 子句。它还可以接受在每次迭代后要执行的语句。在 `for` 支持遍历多个序列之前，这一功能很常用。上述语句可写成
+我们在临时变量 `i` 和 `while` 循环周围添加了一个显式的代码块。这缩小了 `i` 的作用范围。这样的代码块可能会很有用，尽管在这个例子中可能有些过度。不过，上述例子已经是 Zig 中最接近传统的 `for(init; compare; step)` 循环的写法了。
+
+`while` 可以包含 `else` 子句，当条件为假时执行 `else` 子句。它还可以接受在每次迭代后要执行的语句。多个语句可以用 ; 分隔。在 `for` 支持遍历多个序列之前，这一功能很常用。上述语句可写成
 
 ```zig
 var i: usize = 0;
@@ -214,7 +221,6 @@ const Stage = enum {
 	validate,
 	awaiting_confirmation,
 	confirmed,
-	completed,
 	err,
 
 	fn isComplete(self: Stage) bool {
@@ -225,7 +231,7 @@ const Stage = enum {
 
 > 如果需要枚举的字符串表示，可以使用内置的 `@tagName(enum)` 函数。
 
-回想一下，结构类型可以使用 `.{...}` 符号根据其赋值或返回类型来推断。在上面，我们看到枚举类型是根据与 `self` 的比较推导出来的，而 `self` 的类型是 `Stage`。我们本可以明确地写成：`return self == Stage.confirmed` 或 `self == Stage.err`。但是，在处理枚举时，你经常会看到通过 `.$value` 这种省略具体类型的情况。
+回想一下，结构类型可以使用 `.{...}` 符号根据其赋值或返回类型来推断。在上面，我们看到枚举类型是根据与 `self` 的比较推导出来的，而 `self` 的类型是 `Stage`。我们本可以明确地写成：`return self == Stage.confirmed` 或 `self == Stage.err`。但是，在处理枚举时，你经常会看到通过 `.$value` 这种省略具体类型的情况。这被称为*枚举字面量*。
 
 `switch` 的穷举性质使它能与枚举很好地搭配，因为它能确保你处理了所有可能的情况。不过在使用 `switch` 的 `else` 子句时要小心，因为它会匹配任何新添加的枚举值，而这可能不是我们想要的行为。
 
