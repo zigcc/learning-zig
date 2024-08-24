@@ -23,30 +23,10 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
-      - name: Setup mdBook
-        uses: peaceiris/actions-mdbook@v2
-        with:
-          mdbook-version: "latest"
-      - name: Cache Cargo
-        uses: actions/cache@v4
-        with:
-          path: |
-            ~/.cargo/bin
-          key: pages-${{ runner.os }}
-      - name: Setup Pages
-        id: pages
-        uses: actions/configure-pages@v5
-
-      - run: |
-          if ! command -v mdbook-last-changed; then
-            cargo install mdbook-last-changed
-          fi
-          mdbook build
-
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: ./book
+          path: ./static
 
   # Deployment job
   deploy:
